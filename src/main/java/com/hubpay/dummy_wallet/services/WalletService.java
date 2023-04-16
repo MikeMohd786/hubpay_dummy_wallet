@@ -33,9 +33,9 @@ public class WalletService {
 
     @Transactional
     public void  addFunds(Long walletId, BigDecimal amount) {
+        fundCreditValidation(amount);
         Wallet wallet = walletRepository.findById(walletId)
                 .orElseThrow(() -> new WalletNotFoundException("Wallet not found: " + walletId));
-        fundCreditValidation(amount);
         wallet.setBalance(wallet.getBalance().add(amount));
         walletRepository.save(wallet);
         logTransaction(wallet, amount, TransactionType.CREDIT, LocalDateTime.now());
@@ -56,7 +56,7 @@ public class WalletService {
         Wallet wallet = walletRepository.findById(walletId)
                 .orElseThrow(() -> new WalletNotFoundException("Digital wallet not found for wallet ID: " + walletId));
 
-        Pageable pageable = PageRequest.of(page, size, Sort.by("timestamp").descending());
+        Pageable pageable = PageRequest.of(page, size, Sort.by("transactionTime").descending());
         return transactionRepository.findByWallet(wallet, pageable);
     }
 
@@ -77,11 +77,11 @@ public class WalletService {
         }
 
         if (amount.compareTo(BigDecimal.valueOf(10000)) > 0) {
-            throw new InvalidAmountException("Amount exceeds maximum: " + amount);
+            throw new InvalidAmountException("Amount "+amount+" exceeds maximum credit limit 10000");
         }
 
         if (amount.compareTo(BigDecimal.valueOf(10)) < 0) {
-            throw new InvalidAmountException("Amount below minimum: " + amount);
+            throw new InvalidAmountException("Amount "+amount+" below minimum credit limit 10");
         }
     }
 
@@ -91,7 +91,7 @@ public class WalletService {
         }
 
         if (amount.compareTo(BigDecimal.valueOf(5000)) > 0) {
-            throw new InvalidAmountException("Amount exceeds maximum: " + amount);
+            throw new InvalidAmountException("Amount "+amount+" exceeds maximum withdrawal limit 5000");
         }
 
         if (amount.compareTo(wallet.getBalance()) > 0) {

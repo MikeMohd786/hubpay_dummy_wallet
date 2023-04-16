@@ -1,5 +1,6 @@
 package com.hubpay.dummy_wallet.controllers;
 
+import com.hubpay.dummy_wallet.controllers.requests.WalletTransactionRequest;
 import com.hubpay.dummy_wallet.persistance.entities.Transaction;
 import com.hubpay.dummy_wallet.services.WalletService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,14 +23,14 @@ public class WalletController {
     }
 
     @PostMapping("/add-funds")
-    public ResponseEntity<String> addFundsToWallet(@PathVariable Long walletId, @RequestParam BigDecimal amount) {
-        walletService.addFunds(walletId, amount);
+    public ResponseEntity<String> addFundsToWallet(@PathVariable Long walletId, @RequestBody WalletTransactionRequest request) {
+        walletService.addFunds(walletId, request.getAmount());
         return ResponseEntity.status(HttpStatus.ACCEPTED).build();
     }
 
     @PostMapping("/withdraw-funds")
-    public ResponseEntity<String> withdrawFundsFromWallet(@PathVariable Long walletId, @RequestParam BigDecimal amount) {
-        walletService.withdrawFunds(walletId, amount);
+    public ResponseEntity<String> withdrawFundsFromWallet(@PathVariable Long walletId, @RequestBody WalletTransactionRequest request) {
+        walletService.withdrawFunds(walletId, request.getAmount());
         return ResponseEntity.status(HttpStatus.ACCEPTED).build();
     }
 

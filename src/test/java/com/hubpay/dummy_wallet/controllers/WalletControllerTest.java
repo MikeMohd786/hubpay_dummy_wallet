@@ -1,5 +1,6 @@
 package com.hubpay.dummy_wallet.controllers;
 
+import com.hubpay.dummy_wallet.controllers.requests.WalletTransactionRequest;
 import com.hubpay.dummy_wallet.persistance.entities.Transaction;
 import com.hubpay.dummy_wallet.services.WalletService;
 import org.junit.jupiter.api.BeforeEach;
@@ -40,7 +41,7 @@ public class WalletControllerTest {
     public void testAddFundsToWallet() {
         Long walletId = 1L;
         BigDecimal amount = new BigDecimal("100.00");
-        ResponseEntity<String> response = walletController.addFundsToWallet(walletId, amount);
+        ResponseEntity<String> response = walletController.addFundsToWallet(walletId, new WalletTransactionRequest(amount));
 
         verify(walletService, times(1)).addFunds(walletId, amount);
         assertEquals(HttpStatus.ACCEPTED, response.getStatusCode());
@@ -50,7 +51,7 @@ public class WalletControllerTest {
     public void testWithdrawFundsFromWallet() {
         Long walletId = 1L;
         BigDecimal amount = new BigDecimal("50.00");
-        ResponseEntity<String> response = walletController.withdrawFundsFromWallet(walletId, amount);
+        ResponseEntity<String> response = walletController.withdrawFundsFromWallet(walletId, new WalletTransactionRequest(amount));
 
         verify(walletService, times(1)).withdrawFunds(walletId, amount);
         assertEquals(HttpStatus.ACCEPTED, response.getStatusCode());

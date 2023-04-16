@@ -5,6 +5,7 @@ import lombok.*;
 import javax.persistence.*;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -15,7 +16,7 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class Wallet extends BaseEntity {
+public class Wallet {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "ID")
@@ -27,8 +28,12 @@ public class Wallet extends BaseEntity {
     @Column(name = "BALANCE")
     private BigDecimal balance = BigDecimal.ZERO;
 
-    @OneToMany(mappedBy = "wallet", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<Transaction> transactions = new ArrayList<>();
+    @Column(name = "CREATED_AT")
+    private LocalDateTime createdAt;
 
+    @Column(name = "UPDATED_AT")
+    private LocalDateTime updatedAt;
 
+    public <E> Wallet(Long l, String test_customer, BigDecimal zero, ArrayList<E> es) {
+    }
 }
