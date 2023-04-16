@@ -18,8 +18,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.Collections;
-import java.util.List;
 
 @Service
 public class WalletService {
@@ -37,18 +35,7 @@ public class WalletService {
     public void  addFunds(Long walletId, BigDecimal amount) {
         Wallet wallet = walletRepository.findById(walletId)
                 .orElseThrow(() -> new WalletNotFoundException("Wallet not found: " + walletId));
-
-        if (amount.compareTo(BigDecimal.ZERO) <= 0) {
-            throw new InvalidAmountException("Invalid amount: " + amount);
-        }
-
-        if (amount.compareTo(BigDecimal.valueOf(10000)) > 0) {
-            throw new InvalidAmountException("Amount exceeds maximum: " + amount);
-        }
-
-        if (amount.compareTo(BigDecimal.valueOf(10)) < 0) {
-            throw new InvalidAmountException("Amount below minimum: " + amount);
-        }
+        fundCreditValidation(amount);
         wallet.setBalance(wallet.getBalance().add(amount));
         walletRepository.save(wallet);
         logTransaction(wallet, amount, TransactionType.CREDIT, LocalDateTime.now());
@@ -58,19 +45,7 @@ public class WalletService {
     public Wallet withdrawFunds(Long walletId, BigDecimal amount) {
         Wallet wallet = walletRepository.findById(walletId)
                 .orElseThrow(() -> new WalletNotFoundException("Wallet not found: " + walletId));
-
-        if (amount.compareTo(BigDecimal.ZERO) <= 0) {
-            throw new InvalidAmountException("Invalid amount: " + amount);
-        }
-
-        if (amount.compareTo(BigDecimal.valueOf(5000)) > 0) {
-            throw new InvalidAmountException("Amount exceeds maximum: " + amount);
-        }
-
-        if (amount.compareTo(wallet.getBalance()) > 0) {
-            throw new InsufficientFundsException("Insufficient funds: " + wallet.getBalance());
-        }
-
+        fundDebitValidation(amount, wallet);
         wallet.setBalance(wallet.getBalance().subtract(amount));
         Wallet updatedWallet = walletRepository.save(wallet);
         logTransaction(updatedWallet, amount, TransactionType.DEBIT, LocalDateTime.now());
@@ -93,6 +68,35 @@ public class WalletService {
                 .transactionTime(transactionTime)
                 .wallet(wallet)
                 .build());
+    }
+
+    private void fundCreditValidation( BigDecimal amount) {
+
+        if (amount.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new InvalidAmountException("Invalid amount: " + amount);
+        }
+
+        if (amount.compareTo(BigDecimal.valueOf(10000)) > 0) {
+            throw new InvalidAmountException("Amount exceeds maximum: " + amount);
+        }
+
+        if (amount.compareTo(BigDecimal.valueOf(10)) < 0) {
+            throw new InvalidAmountException("Amount below minimum: " + amount);
+        }
+    }
+
+    private void fundDebitValidation(BigDecimal amount, Wallet wallet) {
+        if (amount.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new InvalidAmountException("Invalid amount: " + amount);
+        }
+
+        if (amount.compareTo(BigDecimal.valueOf(5000)) > 0) {
+            throw new InvalidAmountException("Amount exceeds maximum: " + amount);
+        }
+
+        if (amount.compareTo(wallet.getBalance()) > 0) {
+            throw new InsufficientFundsException("Insufficient funds: " + wallet.getBalance());
+        }
     }
 
 }

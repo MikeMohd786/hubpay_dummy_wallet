@@ -1,6 +1,7 @@
 package com.hubpay.dummy_wallet.services;
 
 import com.hubpay.dummy_wallet.exceptions.InsufficientFundsException;
+import com.hubpay.dummy_wallet.exceptions.InvalidAmountException;
 import com.hubpay.dummy_wallet.models.TransactionType;
 import com.hubpay.dummy_wallet.persistance.entities.Transaction;
 import com.hubpay.dummy_wallet.persistance.entities.Wallet;
@@ -13,8 +14,6 @@ import org.mockito.MockitoAnnotations;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -89,6 +88,30 @@ class WalletServiceTest {
         assertEquals(new BigDecimal("100"), wallet.getBalance());
         assertEquals(0, wallet.getTransactions().size());
     }
+
+
+    @Test
+    public void testWithdrawFundsExceedWithdrawalLimit() {
+        Wallet wallet = new Wallet(1L, "Test Customer", new BigDecimal("100"), new ArrayList<>());
+
+        when(walletRepository.findById(any())).thenReturn(java.util.Optional.of(wallet));
+
+        assertThrows(InvalidAmountException.class, () -> walletService.withdrawFunds(1L, new BigDecimal("5001")));
+        assertEquals(new BigDecimal("100"), wallet.getBalance());
+        assertEquals(0, wallet.getTransactions().size());
+    }
+
+    @Test
+    public void testWithdrawInvalidAmount() {
+        Wallet wallet = new Wallet(1L, "Test Customer", new BigDecimal("100"), new ArrayList<>());
+
+        when(walletRepository.findById(any())).thenReturn(java.util.Optional.of(wallet));
+
+        assertThrows(InvalidAmountException.class, () -> walletService.withdrawFunds(1L, BigDecimal.valueOf(-52L)));
+        assertEquals(new BigDecimal("100"), wallet.getBalance());
+        assertEquals(0, wallet.getTransactions().size());
+    }
+
 
     @Test
     public void testGetTransactions() {
