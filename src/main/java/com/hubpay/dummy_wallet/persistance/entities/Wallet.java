@@ -6,8 +6,6 @@ import javax.persistence.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 
 @Entity
 @Getter
@@ -34,6 +32,9 @@ public class Wallet {
     @Column(name = "UPDATED_AT")
     private LocalDateTime updatedAt;
 
-    public <E> Wallet(Long l, String test_customer, BigDecimal zero, ArrayList<E> es) {
+    public <E> Wallet(Long id, String customerName, BigDecimal balance) {
+        this.id = id;
+        this.customerName = customerName;
+        this.balance = balance;
     }
 }

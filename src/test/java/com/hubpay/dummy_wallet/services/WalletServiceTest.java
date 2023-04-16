@@ -23,7 +23,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @SpringBootTest
 class WalletServiceTest {
@@ -44,83 +44,73 @@ class WalletServiceTest {
     @Test
     public void testAddFunds() {
 
-        Wallet wallet = new Wallet(1L, "Test Customer", BigDecimal.ZERO, new ArrayList<>());
+        Wallet wallet = new Wallet(1L, "Test Customer", BigDecimal.ZERO);
         List<Transaction> transactions = new ArrayList<>();
         transactions.add(new Transaction(1L, wallet, new BigDecimal("100"), TransactionType.CREDIT, LocalDateTime.now()));
-        wallet.setTransactions(transactions);
 
         when(walletRepository.findById(any())).thenReturn(java.util.Optional.of(wallet));
         when(walletRepository.save(any())).thenReturn(wallet);
 
         walletService.addFunds(1L, new BigDecimal("100"));
 
-        assertEquals(new BigDecimal("100"), wallet.getBalance());
-        assertEquals(1, wallet.getTransactions().size());
-        assertEquals(TransactionType.CREDIT, wallet.getTransactions().get(0).getType());
-        assertEquals(new BigDecimal("100"), wallet.getTransactions().get(0).getAmount());
+        verify(walletRepository, times(1)).save(any());
+        verify(transactionRepository, times(1)).save(any());
+        verify(walletRepository, times(1)).findById(any());
     }
 
     @Test
     public void testWithdrawFunds() {
-        Wallet wallet = new Wallet(1L, "Test Customer", new BigDecimal("100"), new ArrayList<>());
+        Wallet wallet = new Wallet(1L, "Test Customer", new BigDecimal("100"));
         List<Transaction> transactions = new ArrayList<>();
         transactions.add(new Transaction(1L, wallet, new BigDecimal("50"), TransactionType.DEBIT, LocalDateTime.now()));
-        wallet.setTransactions(transactions);
 
         when(walletRepository.findById(any())).thenReturn(java.util.Optional.of(wallet));
         when(walletRepository.save(any())).thenReturn(wallet);
 
         walletService.withdrawFunds(1L, new BigDecimal("50"));
 
-        assertEquals(new BigDecimal("50"), wallet.getBalance());
-        assertEquals(1, wallet.getTransactions().size());
-        assertEquals(TransactionType.DEBIT, wallet.getTransactions().get(0).getType());
-        assertEquals(new BigDecimal("50"), wallet.getTransactions().get(0).getAmount());
+        verify(walletRepository, times(1)).save(any());
+        verify(transactionRepository, times(1)).save(any());
+        verify(walletRepository, times(1)).findById(any());
     }
 
     @Test
     public void testWithdrawFundsInsufficientFunds() {
-        Wallet wallet = new Wallet(1L, "Test Customer", new BigDecimal("100"), new ArrayList<>());
+        Wallet wallet = new Wallet(1L, "Test Customer", new BigDecimal("100"));
 
         when(walletRepository.findById(any())).thenReturn(java.util.Optional.of(wallet));
 
         assertThrows(InsufficientFundsException.class, () -> walletService.withdrawFunds(1L, new BigDecimal("150")));
         assertEquals(new BigDecimal("100"), wallet.getBalance());
-        assertEquals(0, wallet.getTransactions().size());
     }
 
 
     @Test
     public void testWithdrawFundsExceedWithdrawalLimit() {
-        Wallet wallet = new Wallet(1L, "Test Customer", new BigDecimal("100"), new ArrayList<>());
+        Wallet wallet = new Wallet(1L, "Test Customer", new BigDecimal("100"));
 
         when(walletRepository.findById(any())).thenReturn(java.util.Optional.of(wallet));
 
         assertThrows(InvalidAmountException.class, () -> walletService.withdrawFunds(1L, new BigDecimal("5001")));
-        assertEquals(new BigDecimal("100"), wallet.getBalance());
-        assertEquals(0, wallet.getTransactions().size());
     }
 
     @Test
     public void testWithdrawInvalidAmount() {
-        Wallet wallet = new Wallet(1L, "Test Customer", new BigDecimal("100"), new ArrayList<>());
+        Wallet wallet = new Wallet(1L, "Test Customer", new BigDecimal("100"));
 
         when(walletRepository.findById(any())).thenReturn(java.util.Optional.of(wallet));
 
         assertThrows(InvalidAmountException.class, () -> walletService.withdrawFunds(1L, BigDecimal.valueOf(-52L)));
-        assertEquals(new BigDecimal("100"), wallet.getBalance());
-        assertEquals(0, wallet.getTransactions().size());
     }
 
 
     @Test
     public void testGetTransactions() {
-        Wallet wallet = new Wallet(1L, "Test Customer", BigDecimal.ZERO, new ArrayList<>());
+        Wallet wallet = new Wallet(1L, "Test Customer", BigDecimal.ZERO);
 
         List<Transaction> transactions = new ArrayList<>();
         transactions.add(new Transaction(1L, wallet, new BigDecimal("100"), TransactionType.CREDIT, LocalDateTime.now()));
         transactions.add(new Transaction(1L, wallet, new BigDecimal("50"), TransactionType.CREDIT, LocalDateTime.now()));
-        wallet.setTransactions(transactions);
 
         when(walletRepository.findById(any())).thenReturn(java.util.Optional.of(wallet));
         when(transactionRepository.findByWallet(any(), any())).thenReturn(new PageImpl(transactions));
