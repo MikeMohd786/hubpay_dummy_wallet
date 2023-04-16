@@ -1,6 +1,8 @@
 package com.hubpay.dummy_wallet.controllers;
 
 import com.hubpay.dummy_wallet.controllers.requests.WalletTransactionRequest;
+import com.hubpay.dummy_wallet.models.TransactionDTO;
+import com.hubpay.dummy_wallet.models.TransactionPage;
 import com.hubpay.dummy_wallet.persistance.entities.Transaction;
 import com.hubpay.dummy_wallet.services.WalletService;
 import org.junit.jupiter.api.BeforeEach;
@@ -63,14 +65,14 @@ public class WalletControllerTest {
         Integer page = 0;
         Integer size = 10;
 
-        List<Transaction> transactions = new ArrayList<>();
-        transactions.add(new Transaction());
-        transactions.add(new Transaction());
-        Page<Transaction> pageResult = new PageImpl<>(transactions);
+        List<TransactionDTO> transactions = new ArrayList<>();
+        transactions.add(new TransactionDTO());
+        transactions.add(new TransactionDTO());
+        TransactionPage pageResult = new TransactionPage(0, 1, 10, transactions);
 
         when(walletService.getTransactions(walletId, page, size)).thenReturn(pageResult);
 
-        ResponseEntity<Page<Transaction>> response = walletController.getTransactions(walletId, page, size);
+        ResponseEntity<TransactionPage> response = walletController.getTransactions(walletId, page, size);
 
         verify(walletService, times(1)).getTransactions(walletId, page, size);
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -83,11 +85,11 @@ public class WalletControllerTest {
         Integer page = 0;
         Integer size = 10;
 
-        Page<Transaction> pageResult = new PageImpl<>(new ArrayList<>());
+        TransactionPage pageResult = new TransactionPage(0, 1, 10, new ArrayList<>());
 
         when(walletService.getTransactions(walletId, page, size)).thenReturn(pageResult);
 
-        ResponseEntity<Page<Transaction>> response = walletController.getTransactions(walletId, page, size);
+        ResponseEntity<TransactionPage> response = walletController.getTransactions(walletId, page, size);
 
         verify(walletService, times(1)).getTransactions(walletId, page, size);
         assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());

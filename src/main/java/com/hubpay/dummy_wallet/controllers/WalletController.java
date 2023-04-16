@@ -1,6 +1,7 @@
 package com.hubpay.dummy_wallet.controllers;
 
 import com.hubpay.dummy_wallet.controllers.requests.WalletTransactionRequest;
+import com.hubpay.dummy_wallet.models.TransactionPage;
 import com.hubpay.dummy_wallet.persistance.entities.Transaction;
 import com.hubpay.dummy_wallet.services.WalletService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,12 +36,12 @@ public class WalletController {
     }
 
     @GetMapping("/transactions")
-    public ResponseEntity<Page<Transaction>> getTransactions(@PathVariable Long walletId,
-                                                             @RequestParam(defaultValue = "0") Integer  page,
-                                                             @RequestParam(defaultValue = "10") Integer  size) {
-        Page<Transaction> transactions = walletService.getTransactions(walletId, page, size);
+    public ResponseEntity<TransactionPage> getTransactions(@PathVariable Long walletId,
+                                                           @RequestParam(defaultValue = "0") Integer  page,
+                                                           @RequestParam(defaultValue = "10") Integer  size) {
+       TransactionPage transactions = walletService.getTransactions(walletId, page, size);
 
-        if (transactions.getTotalElements() == 0) {
+        if (transactions.getTransactions().size() == 0) {
             return ResponseEntity.noContent().build();
         } else {
             return ResponseEntity.ok(transactions);

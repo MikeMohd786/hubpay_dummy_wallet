@@ -3,6 +3,8 @@ package com.hubpay.dummy_wallet.services;
 import com.hubpay.dummy_wallet.exceptions.InsufficientFundsException;
 import com.hubpay.dummy_wallet.exceptions.InvalidAmountException;
 import com.hubpay.dummy_wallet.exceptions.WalletNotFoundException;
+import com.hubpay.dummy_wallet.models.TransactionDTO;
+import com.hubpay.dummy_wallet.models.TransactionPage;
 import com.hubpay.dummy_wallet.models.TransactionType;
 import com.hubpay.dummy_wallet.persistance.entities.Transaction;
 import com.hubpay.dummy_wallet.persistance.entities.Wallet;
@@ -18,6 +20,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class WalletService {
@@ -52,12 +56,25 @@ public class WalletService {
         return updatedWallet;
     }
 
-    public Page<Transaction> getTransactions(Long walletId, int page, int size) {
+    public TransactionPage getTransactions(Long walletId, int page, int size) {
         Wallet wallet = walletRepository.findById(walletId)
                 .orElseThrow(() -> new WalletNotFoundException("Digital wallet not found for wallet ID: " + walletId));
 
         Pageable pageable = PageRequest.of(page, size, Sort.by("transactionTime").descending());
-        return transactionRepository.findByWallet(wallet, pageable);
+        Page transactions = transactionRepository.findByWallet(wallet, pageable);
+        return TransactionPage.builder()
+                .page(transactions.getNumber())
+                .size(transactions.getSize())
+                .totalPage(transactions.getTotalPages())
+                .transactions((List<TransactionDTO>) transactions.getContent().stream().map(e -> TransactionDTO.builder()
+                            .id(((Transaction) e).getId())
+                            .createdAt(((Transaction) e).getCreatedAt())
+                            .transactionTime(((Transaction) e).getTransactionTime())
+                            .updatedAt(((Transaction) e).getUpdatedAt())
+                            .type(((Transaction) e).getType())
+                            .amount(((Transaction) e).getAmount())
+                        .build()).collect(Collectors.toList()))
+                .build();
     }
 
 

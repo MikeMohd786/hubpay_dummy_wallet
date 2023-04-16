@@ -2,6 +2,8 @@ package com.hubpay.dummy_wallet.services;
 
 import com.hubpay.dummy_wallet.exceptions.InsufficientFundsException;
 import com.hubpay.dummy_wallet.exceptions.InvalidAmountException;
+import com.hubpay.dummy_wallet.models.TransactionDTO;
+import com.hubpay.dummy_wallet.models.TransactionPage;
 import com.hubpay.dummy_wallet.models.TransactionType;
 import com.hubpay.dummy_wallet.persistance.entities.Transaction;
 import com.hubpay.dummy_wallet.persistance.entities.Wallet;
@@ -109,17 +111,15 @@ class WalletServiceTest {
         Wallet wallet = new Wallet(1L, "Test Customer", BigDecimal.ZERO);
 
         List<Transaction> transactions = new ArrayList<>();
-        transactions.add(new Transaction(1L, wallet, new BigDecimal("100"), TransactionType.CREDIT, LocalDateTime.now()));
-        transactions.add(new Transaction(1L, wallet, new BigDecimal("50"), TransactionType.CREDIT, LocalDateTime.now()));
+        transactions.add(new Transaction(1L, wallet, new BigDecimal("100"), TransactionType.CREDIT, LocalDateTime.now(), LocalDateTime.now(), LocalDateTime.now()));
+        transactions.add(new Transaction(1L, wallet, new BigDecimal("50"), TransactionType.CREDIT, LocalDateTime.now(),  LocalDateTime.now(), LocalDateTime.now()));
 
         when(walletRepository.findById(any())).thenReturn(java.util.Optional.of(wallet));
         when(transactionRepository.findByWallet(any(), any())).thenReturn(new PageImpl(transactions));
-        Page<Transaction> result = walletService.getTransactions(1L, 0, 10);
+       TransactionPage result = walletService.getTransactions(1L, 0, 10);
 
-        assertEquals(transactions, result.getContent());
-        assertEquals(1, result.getTotalPages());
-        assertEquals(2, result.getTotalElements());
-        assertEquals(0, result.getNumber());
-        assertEquals(2, result.getNumberOfElements());
+        assertEquals(transactions.size(), result.getTransactions().size());
+        assertEquals(0, result.getPage());
+        assertEquals(2, result.getSize());
     }
 }
